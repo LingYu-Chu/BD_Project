@@ -10,8 +10,8 @@ class Strategy():
     def __init__(self):
         # strategy property
         self.subscribedBooks = {
-            'Bitfinex': {
-                'pairs': ['BTC-USDT'], 
+            'Binance': {
+                'pairs': ['ETH-USDT'], 
             },
         }
         self.period = 10 * 60
@@ -21,10 +21,11 @@ class Strategy():
         self.last_type = 'sell'
         self.last_cross_status = None
         self.close_price_trace = np.array([]) 
-        self.ma_long = 20  ##
+        self.ma_long = 15  ##
         self.ma_short = 5  ##
         self.UP = 1   
         self.DOWN = 2
+        self.amount = 0
 
     def on_order_state_change(self,  order):
         Log("on order state change message: " + str(order) + " order price: " + str(order["price"]))
@@ -37,13 +38,21 @@ class Strategy():
 
         if np.isnan(s_ma) or np.isnan(l_ma):
             return None
-        if rsi_score < 30 and s_ma > l_ma:
+        if rsi_score < 20:
+            self.amount = 2
             return self.UP
-        elif rsi_score > 70 and s_ma < l_ma:
+        if rsi_score >=20 and rsi_score <=50 :
+            self.amount = 5
+            return self.UP
+        if s_ma > l_ma:
+            self.amount = 2
+            return self.UP
+        elif rsi_score > 80 or s_ma < l_ma:
             return self.DOWN
 
     # called every self.period
     def trade(self, information):
+        global amount
         exchange = list(information['candles'])[0] #exchange交易所 
         pair = list(information['candles'][exchange])[0] #(candles:k線資訊)交易對pair
         target_currency = pair.split('-')[0]  #ETH 當前可操作的貨幣
@@ -72,7 +81,7 @@ class Strategy():
             return [
                 {
                     'exchange': exchange, #此筆訂單要向哪個交易所進行交易 
-                    'amount': 1, #要交易的數位貨幣數量
+                    'amount': self.amount, #要交易的數位貨幣數量
                     'price': -1, #多少價格進行交易 採用市價
                     'type': 'MARKET', #交易方式
                     'pair': pair, #交易貨幣對
