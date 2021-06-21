@@ -21,7 +21,7 @@ class Strategy():
         self.last_type = 'sell'
         self.last_cross_status = None
         self.close_price_trace = np.array([]) 
-        self.ma_long = 15  ##
+        self.ma_long = 20  ##
         self.ma_short = 5  ##
         self.UP = 1   
         self.DOWN = 2
@@ -38,14 +38,11 @@ class Strategy():
 
         if np.isnan(s_ma) or np.isnan(l_ma):
             return None
-        if rsi_score < 20:
-            self.amount = 2
-            return self.UP
-        if rsi_score >=20 and rsi_score <=50 :
-            self.amount = 5
+        if rsi_score < 30:
+            self.amount = 30
             return self.UP
         if s_ma > l_ma:
-            self.amount = 2
+            self.amount = 30
             return self.UP
         elif rsi_score > 80 or s_ma < l_ma:
             return self.DOWN
